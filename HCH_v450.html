@@ -2855,7 +2855,7 @@ h3 { font-size: 14px; }
    <button onclick="anAddSymbolConfirm()" style="padding:4px 8px;font-size:9px;background:rgba(0,212,255,0.1);color:var(--accent-cyan);border:1px solid rgba(0,212,255,0.2);border-radius:4px;cursor:pointer;font-weight:600">OK</button>
   </div>
  </div>
- <div class="an-sb-list" id="an-sb-list"></div>
+ <div class="an-sb-list" id="an-sb-list" ondragover="anListDragOver(event)" ondrop="anListDrop(event)" ondragleave="anListDragLeave(event)"></div>
  <div style="padding:6px 10px;border-top:1px solid var(--border);display:flex;gap:4px">
   <button onclick="document.getElementById('an-import-zone').style.display=document.getElementById('an-import-zone').style.display==='none'?'block':'none'" style="flex:1;font-size:8px;padding:4px;background:rgba(0,212,255,0.06);color:var(--accent-cyan);border:1px solid rgba(0,212,255,0.1);border-radius:4px;cursor:pointer">📥 CSV</button>
   <span id="an-storage" style="font-size:7px;font-family:JetBrains Mono;color:var(--text-muted);display:flex;align-items:center"></span>
@@ -6595,7 +6595,7 @@ function anRenderSidebar() {
   var conf = r ? (r.confidence||0) : 0;
   var cc = conf>=60?'var(--accent-green)':conf>=35?'var(--accent-yellow)':'var(--text-muted)';
 
-  h += '<div class="an-sb-item'+(isSel?' sel':'')+'" onclick="anSelectSym(\''+sym+'\')" title="'+sym+'" draggable="true" data-sym="'+sym+'" ondragstart="anDragStart(event)" ondragover="anDragOver(event)" ondragenter="anDragEnter(event)" ondragleave="anDragLeave(event)" ondrop="anDrop(event)" ondragend="anDragEnd(event)">';
+  h += '<div class="an-sb-item'+(isSel?' sel':'')+'" onclick="anSelectSym(\''+sym+'\')" title="'+sym+'" draggable="true" data-sym="'+sym+'" ondragstart="anDragStart(event)" ondragend="anDragEnd(event)">';
   // Symbol name
   h += '<div class="an-sb-sym" style="color:var(--text-primary)">'+sym+'</div>';
   // Info column
@@ -6637,33 +6637,73 @@ function anRenderSidebar() {
 
 // --- Drag & Drop para reordenar símbolos ---
 var _anDragSym = null;
+var _anDropIndicator = null;
 function anDragStart(e) {
  _anDragSym = e.currentTarget.dataset.sym;
  e.dataTransfer.effectAllowed = 'move';
- e.currentTarget.style.opacity = '0.4';
+ setTimeout(function(){ e.target.style.opacity = '0.4'; }, 0);
 }
-function anDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
-function anDragEnter(e) {
- e.preventDefault();
- var el = e.currentTarget;
- if (el.dataset.sym !== _anDragSym) el.style.borderTop = '2px solid var(--accent-cyan)';
+function anDragEnd(e) {
+ e.currentTarget.style.opacity = '';
+ _anDragSym = null;
+ anRemoveDropIndicator();
 }
-function anDragLeave(e) { e.currentTarget.style.borderTop = ''; }
-function anDrop(e) {
+function anRemoveDropIndicator() {
+ if (_anDropIndicator && _anDropIndicator.parentNode) _anDropIndicator.parentNode.removeChild(_anDropIndicator);
+ _anDropIndicator = null;
+}
+function anGetDropTarget(e) {
+ var list = document.getElementById('an-sb-list');
+ var items = list.querySelectorAll('.an-sb-item');
+ var insertBefore = null;
+ for (var i = 0; i < items.length; i++) {
+  var rect = items[i].getBoundingClientRect();
+  var mid = rect.top + rect.height / 2;
+  if (e.clientY < mid) { insertBefore = items[i]; break; }
+ }
+ return insertBefore;
+}
+function anListDragOver(e) {
  e.preventDefault();
- e.currentTarget.style.borderTop = '';
- var target = e.currentTarget.dataset.sym;
- if (!_anDragSym || _anDragSym === target) return;
+ e.dataTransfer.dropEffect = 'move';
+ if (!_anDragSym) return;
+ var list = document.getElementById('an-sb-list');
+ var target = anGetDropTarget(e);
+ var targetSym = target ? target.dataset.sym : null;
+ if (targetSym === _anDragSym) { anRemoveDropIndicator(); return; }
+ // También ignorar si se insertaría justo después de sí mismo
+ var syms = anGetSymbols();
+ var dragIdx = syms.indexOf(_anDragSym);
+ var targetIdx = targetSym ? syms.indexOf(targetSym) : syms.length;
+ if (targetIdx === dragIdx + 1) { anRemoveDropIndicator(); return; }
+ if (!_anDropIndicator) {
+  _anDropIndicator = document.createElement('div');
+  _anDropIndicator.style.cssText = 'height:2px;background:var(--accent-cyan);border-radius:1px;margin:0 4px;pointer-events:none;box-shadow:0 0 6px rgba(0,212,255,0.5)';
+ }
+ if (target) list.insertBefore(_anDropIndicator, target);
+ else list.appendChild(_anDropIndicator);
+}
+function anListDragLeave(e) {
+ var list = document.getElementById('an-sb-list');
+ if (!list.contains(e.relatedTarget)) anRemoveDropIndicator();
+}
+function anListDrop(e) {
+ e.preventDefault();
+ anRemoveDropIndicator();
+ if (!_anDragSym) return;
+ var target = anGetDropTarget(e);
+ var targetSym = target ? target.dataset.sym : null;
  var syms = anGetSymbols();
  var fromIdx = syms.indexOf(_anDragSym);
- var toIdx = syms.indexOf(target);
- if (fromIdx < 0 || toIdx < 0) return;
+ if (fromIdx < 0) return;
  syms.splice(fromIdx, 1);
+ var toIdx = targetSym ? syms.indexOf(targetSym) : syms.length;
+ if (toIdx < 0) toIdx = syms.length;
  syms.splice(toIdx, 0, _anDragSym);
  anSaveSymbols(syms);
+ _anDragSym = null;
  anRenderSidebar();
 }
-function anDragEnd(e) { e.currentTarget.style.opacity = ''; _anDragSym = null; }
 
 function anSelectSym(sym) {
  _anSel = sym;
