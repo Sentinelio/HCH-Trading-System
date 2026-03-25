@@ -6610,7 +6610,11 @@ function anRenderSidebar() {
    var phL = {hombro_izq:'HIzq',cabeza:'Cab',hombro_der:'HDer',neckline:'Neck',ruptura:'Rupt',forming:'Form',none:''};
    if (r.phase && r.phase !== 'none') h += '<span style="font-size:7px;color:var(--accent-purple)">'+phL[r.phase]+'</span>';
   }
-  if (hasCSV) h += '<span style="font-size:6px;color:var(--accent-cyan)">CSV</span>';
+  if (hasCSV) {
+   var _tfOrd={M5:1,'5M':1,M15:2,'15M':2,M30:3,'30M':3,H1:4,'1H':4,H4:5,'4H':5,D1:6,'1D':6};
+   var csvTFsSb = symHD.filter(function(d){return d.source!=='scanner'}).map(function(d){return d.tf}).sort(function(a,b){return (_tfOrd[a]||99)-(_tfOrd[b]||99)});
+   h += '<span style="font-size:6px;color:var(--accent-cyan)">CSV '+csvTFsSb.join('+')+'</span>';
+  }
   if (myWR >= 0) { var wrc = myWR>=55?'var(--accent-green)':myWR>=45?'var(--accent-yellow)':'var(--accent-red)'; h += '<span style="font-size:7px;font-family:JetBrains Mono;color:'+wrc+'">'+myWR+'%</span>'; }
   h += '</div>';
   // Confidence bar
@@ -6746,7 +6750,8 @@ function anRenderPanel() {
  h += '<span style="font-family:JetBrains Mono;font-size:12px;font-weight:700;color:'+cc+'">'+conf+'%</span>';
  // CSV badge
  var hdI3 = hdGetAll();
- var csvTFs = hdI3.filter(function(d){return d.sym.replace(/[^A-Z0-9]/g,'')===sym && d.source!=='scanner'}).map(function(d){return d.tf});
+ var _tfOrd2={M5:1,'5M':1,M15:2,'15M':2,M30:3,'30M':3,H1:4,'1H':4,H4:5,'4H':5,D1:6,'1D':6};
+ var csvTFs = hdI3.filter(function(d){return d.sym.replace(/[^A-Z0-9]/g,'')===sym && d.source!=='scanner'}).map(function(d){return d.tf}).sort(function(a,b){return (_tfOrd2[a]||99)-(_tfOrd2[b]||99)});
  if (csvTFs.length) h += '<span style="font-size:10px;padding:3px 10px;border-radius:4px;background:rgba(0,212,255,0.08);color:var(--accent-cyan);border:1px solid rgba(0,212,255,0.15);font-family:JetBrains Mono">CSV '+csvTFs.join('+')+'</span>';
  h += '<span style="margin-left:auto;font-size:10px;color:'+sesColor+'">'+sesName+'</span>';
  if (myWR >= 0) h += '<span style="font-size:10px;font-family:JetBrains Mono;font-weight:700;color:'+(myWR>=55?'var(--accent-green)':'var(--accent-yellow)')+'">🎲'+myWR+'%</span>';
