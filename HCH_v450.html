@@ -2781,7 +2781,8 @@ h3 { font-size: 14px; }
 .an-sidebar{width:240px;min-width:240px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg-card);overflow:hidden}
 .an-sb-hdr{padding:8px 10px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
 .an-sb-list{flex:1;overflow-y:auto;padding:4px}
-.an-sb-item{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:6px;cursor:pointer;transition:all 0.15s;border:1px solid transparent;margin-bottom:2px}
+.an-sb-item{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:6px;cursor:grab;transition:all 0.15s;border:1px solid transparent;margin-bottom:2px}
+.an-sb-item:active{cursor:grabbing}
 .an-sb-item:hover{background:rgba(0,212,255,0.03);border-color:rgba(0,212,255,0.06)}
 .an-sb-item.sel{background:rgba(0,212,255,0.06);border-color:rgba(0,212,255,0.15)}
 .an-sb-sym{font-family:JetBrains Mono;font-size:11px;font-weight:700;min-width:52px}
@@ -6594,7 +6595,7 @@ function anRenderSidebar() {
   var conf = r ? (r.confidence||0) : 0;
   var cc = conf>=60?'var(--accent-green)':conf>=35?'var(--accent-yellow)':'var(--text-muted)';
 
-  h += '<div class="an-sb-item'+(isSel?' sel':'')+'" onclick="anSelectSym(\''+sym+'\')" title="'+sym+'">';
+  h += '<div class="an-sb-item'+(isSel?' sel':'')+'" onclick="anSelectSym(\''+sym+'\')" title="'+sym+'" draggable="true" data-sym="'+sym+'" ondragstart="anDragStart(event)" ondragover="anDragOver(event)" ondragenter="anDragEnter(event)" ondragleave="anDragLeave(event)" ondrop="anDrop(event)" ondragend="anDragEnd(event)">';
   // Symbol name
   h += '<div class="an-sb-sym" style="color:var(--text-primary)">'+sym+'</div>';
   // Info column
@@ -6629,6 +6630,36 @@ function anRenderSidebar() {
  listEl.innerHTML = h || '<div style="padding:20px;text-align:center;font-size:10px;color:var(--text-muted)">Sin símbolos. Pulsa + para añadir.</div>';
  if (countEl) countEl.textContent = shown + '';
 }
+
+// --- Drag & Drop para reordenar símbolos ---
+var _anDragSym = null;
+function anDragStart(e) {
+ _anDragSym = e.currentTarget.dataset.sym;
+ e.dataTransfer.effectAllowed = 'move';
+ e.currentTarget.style.opacity = '0.4';
+}
+function anDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+function anDragEnter(e) {
+ e.preventDefault();
+ var el = e.currentTarget;
+ if (el.dataset.sym !== _anDragSym) el.style.borderTop = '2px solid var(--accent-cyan)';
+}
+function anDragLeave(e) { e.currentTarget.style.borderTop = ''; }
+function anDrop(e) {
+ e.preventDefault();
+ e.currentTarget.style.borderTop = '';
+ var target = e.currentTarget.dataset.sym;
+ if (!_anDragSym || _anDragSym === target) return;
+ var syms = anGetSymbols();
+ var fromIdx = syms.indexOf(_anDragSym);
+ var toIdx = syms.indexOf(target);
+ if (fromIdx < 0 || toIdx < 0) return;
+ syms.splice(fromIdx, 1);
+ syms.splice(toIdx, 0, _anDragSym);
+ anSaveSymbols(syms);
+ anRenderSidebar();
+}
+function anDragEnd(e) { e.currentTarget.style.opacity = ''; _anDragSym = null; }
 
 function anSelectSym(sym) {
  _anSel = sym;
