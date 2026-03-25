@@ -12403,13 +12403,13 @@ function hdDetectFromFilename(name) {
  // Common forex pairs
  var pairs = ['EURUSD','GBPUSD','USDJPY','USDCHF','AUDUSD','NZDUSD','USDCAD','EURJPY','GBPJPY','EURGBP','AUDJPY','EURAUD','EURNZD','GBPNZD','GBPAUD','NZDJPY','CADJPY','CHFJPY','XAUUSD','XAGUSD','BTCUSD','US30','NAS100','SPX500'];
  for (var i = 0; i < pairs.length; i++) { if (n.indexOf(pairs[i]) >= 0) { sym = pairs[i]; break; } }
- // TF detection
- if (n.indexOf('_5M') >= 0 || n.indexOf('M5') >= 0 || /[_,]5[^0-9]/.test(n)) tf = 'M5';
- else if (n.indexOf('_15') >= 0 || n.indexOf('M15') >= 0 || n.indexOf('_15M') >= 0) tf = 'M15';
- else if (n.indexOf('_30') >= 0 || n.indexOf('M30') >= 0 || n.indexOf('_30M') >= 0) tf = 'M30';
+ // TF detection - check longer patterns first to avoid false matches
+ if (n.indexOf('_240') >= 0 || n.indexOf('_4H') >= 0 || n.indexOf('H4') >= 0) tf = 'H4';
  else if (n.indexOf('_60') >= 0 || n.indexOf('_1H') >= 0 || n.indexOf('H1') >= 0 || n.indexOf('_60M') >= 0) tf = 'H1';
- else if (n.indexOf('_240') >= 0 || n.indexOf('_4H') >= 0 || n.indexOf('H4') >= 0) tf = 'H4';
- else if (n.indexOf('_1D') >= 0 || n.indexOf('DAILY') >= 0 || n.indexOf('_D') >= 0) tf = 'Daily';
+ else if (n.indexOf('_30') >= 0 || n.indexOf('M30') >= 0 || n.indexOf('_30M') >= 0) tf = 'M30';
+ else if (n.indexOf('_15') >= 0 || n.indexOf('M15') >= 0 || n.indexOf('_15M') >= 0) tf = 'M15';
+ else if (n.indexOf('_1D') >= 0 || n.indexOf('DAILY') >= 0 || /[_,]D[^A-Z]/.test(n+'_')) tf = 'Daily';
+ else if (n.indexOf('M5') >= 0 || n.indexOf('_5M') >= 0 || /[_,]5$/.test(n) || /[_,]5[^0-9]/.test(n)) tf = 'M5';
  return { sym: sym, tf: normTF(tf) };
 }
 
@@ -12566,6 +12566,7 @@ async function hdImport() {
    if (existingIdx >= 0) { idx[existingIdx] = { sym: sym, tf: tf, key: key }; }
    else { idx.push({ sym: sym, tf: tf, key: key }); }
    imported++;
+   statusEl.innerHTML += '<br><span style="color:var(--accent-green)">✅ ' + files[f].name + ' → ' + sym + ' ' + tf + ' (' + candles.length + ' velas)</span>';
   } catch(e) { statusEl.innerHTML += '<br><span style="color:var(--accent-red)">❌ ' + files[f].name + ': ' + e.message + '</span>'; errors++; }
  }
  hdSaveIndex(idx);
