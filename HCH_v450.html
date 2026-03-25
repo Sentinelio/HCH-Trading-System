@@ -6509,6 +6509,19 @@ function scanShowLast() { scanInitUnified(); }
 var _anSel = ''; // selected symbol
 var _anView = 0; // 0=análisis, 1=mtf, 2=detail, 3=ops, 4=log
 
+// Normaliza nombres de timeframe a formato canónico: M5, M15, M30, H1, H4, Daily
+function normTF(tf) {
+ if (!tf) return tf;
+ var u = tf.toUpperCase().replace(/\s/g,'');
+ if (u==='5M'||u==='M5'||u==='5MIN') return 'M5';
+ if (u==='15M'||u==='M15'||u==='15MIN') return 'M15';
+ if (u==='30M'||u==='M30'||u==='30MIN') return 'M30';
+ if (u==='1H'||u==='H1'||u==='60M'||u==='M60') return 'H1';
+ if (u==='4H'||u==='H4'||u==='240M'||u==='M240') return 'H4';
+ if (u==='1D'||u==='D1'||u==='DAILY'||u==='D') return 'Daily';
+ return tf;
+}
+
 // Default symbols: S + A + XAUUSD
 var AN_DEFAULT_SYMS = ['EURUSD','GBPUSD','USDJPY','USDCHF','AUDUSD','NZDUSD','USDCAD','XAUUSD'];
 
@@ -6805,13 +6818,13 @@ function anRenderPanel() {
 
  // === TF BAR ===
  h += '<div class="an-tf-bar">';
- ['5M','15M','30M','1H','4H'].forEach(function(tf){
+ ['M5','M15','M30','H1','H4'].forEach(function(tf){
   var hdIdx = hdGetAll();
-  var hasTF = hdIdx.some(function(d){return d.sym.replace(/[^A-Z0-9]/g,'')===sym && d.tf===tf});
+  var hasTF = hdIdx.some(function(d){return d.sym.replace(/[^A-Z0-9]/g,'')===sym && normTF(d.tf)===tf});
   var noData = !hasTF;
   var dotC = noData ? 'rgba(255,255,255,0.08)' : 'var(--text-muted)';
   if (tf === 'M30' && r.pattern && r.pattern !== 'none') dotC = 'var(--accent-green)';
-  if (tf === '1H' && hasTF) dotC = 'var(--accent-yellow)'; // forming in H1
+  if (tf === 'H1' && hasTF) dotC = 'var(--accent-yellow)';
   h += '<div class="an-tf-tab'+(tf==='M30'?' on':'')+(noData?' style="opacity:0.3"':'')+'"><span class="an-tf-dot" style="background:'+dotC+'"></span>'+tf+'</div>';
  });
  h += '</div>';
@@ -6944,7 +6957,7 @@ function anRenderPanel() {
   h += '</svg>';
   // TF dots - fixed positions matching mockup
   var hdI2 = hdGetAll();
-  var hasTF30 = hdI2.some(function(d){return d.sym.replace(/[^A-Z0-9]/g,'')===sym && d.tf==='M30'});
+  var hasTF30 = hdI2.some(function(d){return d.sym.replace(/[^A-Z0-9]/g,'')===sym && normTF(d.tf)==='M30'});
   var hasPatM30 = r.pattern && r.pattern !== 'none';
   h += '<div style="position:absolute;top:2px;left:50%;transform:translateX(-50%);width:18px;height:18px;border-radius:50%;background:var(--bg-card);border:1.5px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:6px;font-family:JetBrains Mono;color:var(--text-muted);opacity:0.3">5M</div>';
   h += '<div style="position:absolute;top:18px;right:6px;width:20px;height:20px;border-radius:50%;background:var(--bg-card);border:1.5px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:6px;font-family:JetBrains Mono;color:var(--text-secondary)">15</div>';
@@ -6992,8 +7005,8 @@ function anRenderPanel() {
  h += '<div class="an-view">';
  var hdMTF = hdGetAll();
  h += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border-radius:6px;overflow:hidden">';
- ['5M','15M','M30','1H','4H'].forEach(function(tf){
-  var hasTF = hdMTF.some(function(d){return d.sym.replace(/[^A-Z0-9]/g,'')===sym && d.tf===tf});
+ ['M5','M15','M30','H1','H4'].forEach(function(tf){
+  var hasTF = hdMTF.some(function(d){return d.sym.replace(/[^A-Z0-9]/g,'')===sym && normTF(d.tf)===tf});
   var isPrimary = tf === 'M30';
   h += '<div style="background:var(--bg-card);padding:10px;font-size:9px;'+(isPrimary?'background:rgba(0,212,255,0.03);border-top:2px solid var(--accent-cyan);':'')+(!hasTF?'opacity:0.25;':'')+'min-height:180px">';
   h += '<div style="font-family:JetBrains Mono;font-size:11px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:4px;color:'+(isPrimary?'var(--accent-cyan)':'var(--text-primary)')+'">'+tf;
@@ -7011,7 +7024,7 @@ function anRenderPanel() {
    // Levels for this TF
    if (r.key_levels) r.key_levels.forEach(function(l){
     var ls = typeof hdGetLevelStrength==='function'?hdGetLevelStrength(sym,parseFloat(l)):{found:false};
-    var tfData = ls.found ? (ls.byTF||[]).find(function(t){return t.tf===tf}) : null;
+    var tfData = ls.found ? (ls.byTF||[]).find(function(t){return normTF(t.tf)===tf}) : null;
     h += '<div style="display:flex;justify-content:space-between;padding:2px 0"><span style="font-family:JetBrains Mono;color:var(--accent-cyan);font-size:10px">'+l+'</span>';
     if (tfData) h += '<span style="font-family:JetBrains Mono;font-weight:600;color:'+(tfData.strength>=60?'var(--accent-green)':'var(--text-muted)')+'">'+tfData.touches+'t</span>';
     else h += '<span style="color:var(--text-muted)">—</span>';
@@ -7034,9 +7047,8 @@ function anRenderPanel() {
  h += '<div class="an-view">';
  h += '<div style="font-size:10px;color:var(--text-muted);margin-bottom:8px">Niveles y datos por cada timeframe importado</div>';
  var hdIdx = hdGetAll();
- ['5M','M15','M30','H1','H4'].forEach(function(tf){
-  var tfN = tf === '5M' ? '5M' : tf;
-  var hasTF = hdIdx.some(function(d){return d.sym.replace(/[^A-Z0-9]/g,'')===sym && d.tf===tfN});
+ ['M5','M15','M30','H1','H4'].forEach(function(tf){
+  var hasTF = hdIdx.some(function(d){return d.sym.replace(/[^A-Z0-9]/g,'')===sym && normTF(d.tf)===tf});
   h += '<div style="margin-bottom:6px;background:var(--bg-secondary);border-radius:6px;border:1px solid var(--border);overflow:hidden'+(tf==='M30'?';border-left:3px solid var(--accent-cyan)':'')+'">';
   h += '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;font-size:10px">';
   h += '<span style="font-family:JetBrains Mono;font-weight:700;min-width:30px;color:'+(tf==='M30'?'var(--accent-cyan)':'var(--text-primary)')+'">'+tf+'</span>';
@@ -7048,7 +7060,7 @@ function anRenderPanel() {
     // Find specific TF data
     h += '<span style="font-family:JetBrains Mono;font-size:9px;color:var(--accent-cyan)">'+l+'</span>';
     if (ls.found) {
-     var tfData = ls.byTF.find(function(t){return t.tf===tfN});
+     var tfData = ls.byTF.find(function(t){return normTF(t.tf)===tf});
      if (tfData) h += '<span style="font-size:10px;font-family:JetBrains Mono;color:var(--accent-green)">'+tfData.touches+'t '+tfData.strength+'%</span>';
      else h += '<span style="font-size:10px;color:var(--text-muted)">—</span>';
     }
@@ -12225,12 +12237,13 @@ function hdDetectFromFilename(name) {
  var pairs = ['EURUSD','GBPUSD','USDJPY','USDCHF','AUDUSD','NZDUSD','USDCAD','EURJPY','GBPJPY','EURGBP','AUDJPY','EURAUD','EURNZD','GBPNZD','GBPAUD','NZDJPY','CADJPY','CHFJPY','XAUUSD','XAGUSD','BTCUSD','US30','NAS100','SPX500'];
  for (var i = 0; i < pairs.length; i++) { if (n.indexOf(pairs[i]) >= 0) { sym = pairs[i]; break; } }
  // TF detection
- if (n.indexOf('_15') >= 0 || n.indexOf('M15') >= 0 || n.indexOf('_15M') >= 0) tf = 'M15';
+ if (n.indexOf('_5M') >= 0 || n.indexOf('M5') >= 0 || /[_,]5[^0-9]/.test(n)) tf = 'M5';
+ else if (n.indexOf('_15') >= 0 || n.indexOf('M15') >= 0 || n.indexOf('_15M') >= 0) tf = 'M15';
  else if (n.indexOf('_30') >= 0 || n.indexOf('M30') >= 0 || n.indexOf('_30M') >= 0) tf = 'M30';
  else if (n.indexOf('_60') >= 0 || n.indexOf('_1H') >= 0 || n.indexOf('H1') >= 0 || n.indexOf('_60M') >= 0) tf = 'H1';
  else if (n.indexOf('_240') >= 0 || n.indexOf('_4H') >= 0 || n.indexOf('H4') >= 0) tf = 'H4';
  else if (n.indexOf('_1D') >= 0 || n.indexOf('DAILY') >= 0 || n.indexOf('_D') >= 0) tf = 'Daily';
- return { sym: sym, tf: tf };
+ return { sym: sym, tf: normTF(tf) };
 }
 
 function hdParseCSV(text) {
@@ -12264,6 +12277,7 @@ function hdDetectTFFromData(candles) {
  if (!diffs.length) return 'M30';
  diffs.sort(function(a,b){return a-b});
  var median = diffs[Math.floor(diffs.length/2)];
+ if (median <= 400) return 'M5';
  if (median <= 1000) return 'M15';
  if (median <= 2100) return 'M30';
  if (median <= 4200) return 'H1';
@@ -12375,7 +12389,7 @@ async function hdImport() {
    if (candles.length < 20) { statusEl.innerHTML += '<br><span style="color:var(--accent-orange)">⚠️ ' + files[f].name + ': muy pocas velas (' + candles.length + ')</span>'; errors++; continue; }
    var detected = hdDetectFromFilename(files[f].name);
    var sym = symOverride || detected.sym;
-   var tf = (tfOverride !== 'auto') ? tfOverride : (detected.tf || hdDetectTFFromData(candles));
+   var tf = normTF((tfOverride !== 'auto') ? tfOverride : (detected.tf || hdDetectTFFromData(candles)));
    if (!sym) { statusEl.innerHTML += '<br><span style="color:var(--accent-red)">❌ ' + files[f].name + ': no pude detectar el símbolo. Escríbelo manualmente.</span>'; errors++; continue; }
    var data = hdProcessCSV(candles, sym, tf);
    var key = 'hch_hd_' + sym + '_' + tf;
@@ -12470,10 +12484,10 @@ function hdGetLevelStrength(sym, price) {
  var idx = hdGetAll();
  var symNorm = sym.toUpperCase().replace(/[^A-Z0-9]/g, '');
  var result = { found: false, byTF: [], combined: { touches: 0, asSupport: 0, asResistance: 0, strength: 0 } };
- var tfOrder = ['M15','M30','H1','H4','Daily'];
+ var tfOrder = ['M5','M15','M30','H1','H4','Daily'];
  tfOrder.forEach(function(tf) {
   // Find ALL entries for this sym+tf (CSV + scanner)
-  var entries = idx.filter(function(d) { return d.sym.replace(/[^A-Z0-9]/g,'') === symNorm && d.tf === tf; });
+  var entries = idx.filter(function(d) { return d.sym.replace(/[^A-Z0-9]/g,'') === symNorm && normTF(d.tf) === tf; });
   if (!entries.length) return;
   var bestZone = null, bestDist = Infinity;
   entries.forEach(function(entry) {
