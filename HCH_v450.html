@@ -2840,6 +2840,7 @@ h3 { font-size: 14px; }
   <div id="an-keys" style="display:none;gap:6px;flex-direction:column">
    <input type="text" id="scan-td-key" class="calc-input" placeholder="Twelve Data key..." style="font-family:JetBrains Mono;font-size:8px;padding:3px 6px">
    <input type="password" id="scan-claude-key" class="calc-input" placeholder="Claude API sk-ant-..." style="font-family:JetBrains Mono;font-size:8px;padding:3px 6px">
+   <button onclick="scanTest()" style="padding:3px 8px;font-size:8px;font-weight:600;font-family:JetBrains Mono;background:rgba(0,212,255,0.08);color:var(--accent-cyan);border:1px solid rgba(0,212,255,0.15);border-radius:4px;cursor:pointer">🧪 Verificar Keys</button>
   </div>
   <input type="text" id="an-search" placeholder="Buscar..." oninput="anRenderSidebar()" style="padding:4px 8px;font-size:10px;font-family:JetBrains Mono;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);border-radius:5px;width:100%">
   <div id="an-add-row" style="display:none;align-items:center;gap:4px">
@@ -5757,8 +5758,8 @@ async function scanTest() {
   } catch(e) { msgs.push('<span style="color:var(--accent-red)">❌ Claude API: ' + e.message + '</span>'); }
  } else { msgs.push('<span style="color:var(--accent-yellow)">⚠️ Sin Claude API key</span>'); }
 
- statusEl.innerHTML = msgs.every(function(m) { return m.indexOf('✅') >= 0; }) ? '<span style="color:var(--accent-green)">✅ Todo OK</span>' : '<span style="color:var(--accent-yellow)">Ver resultados abajo</span>';
- resEl.innerHTML = '<div class="card" style="padding:14px;border:1px solid var(--border)"><div style="font-family:JetBrains Mono;font-size:11px;font-weight:600;margin-bottom:8px">🧪 Test de conexión</div><div style="display:flex;flex-direction:column;gap:6px;font-size:11px;line-height:1.6">' + msgs.join('') + '</div></div>';
+ statusEl.innerHTML = '<div style="display:flex;flex-direction:column;gap:4px;font-size:10px;line-height:1.5">' + msgs.join('') + '</div>';
+ if (resEl) resEl.innerHTML = '';
 }
 
 function scanOpenSetup(sym, dir) {
