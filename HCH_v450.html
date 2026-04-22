@@ -9783,8 +9783,8 @@ cfg.taxMode = v('prog-tax-mode') || 'gross';
 cfg.goalTime = v('prog-goal-time') !== '' ? parseInt(v('prog-goal-time')) : '';
 cfg.goalUnit = v('prog-goal-unit') || '';
 safeSave('hch_prog_config', JSON.stringify(cfg));
-computeProgreso();
-try { computeDashboard(); } catch(e) {}
+// La config forma parte del cache de getTradeState(): invalidar antes de re-render
+try { refreshAll(); } catch(e) { invalidateTradeState(); computeProgreso(); try { computeDashboard(); } catch(e2) {} }
 }
 function resetProgConfig() {
 const cfg = loadProgConfig();
@@ -9794,7 +9794,7 @@ safeSave('hch_prog_config', JSON.stringify(keep));
 document.getElementById('prog-goal-unit').value = '';
 document.getElementById('prog-tax-mode').value = 'gross';
 document.getElementById('prog-capital-now-ro').value = '';
-computeProgreso();
+try { refreshAll(); } catch(e) { invalidateTradeState(); computeProgreso(); }
 }
 function populateProgInputs() {
 const cfg = loadProgConfig();
