@@ -1641,15 +1641,15 @@ h3 { font-size: 14px; }
 
 <div class="card">
  <h3><span class="h3-icon">⚙️</span> Configuración</h3>
- <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px">Pulsa Guardar para aplicar. Capital actual se calcula automáticamente.</p>
+ <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px">Los cambios se aplican automáticamente al salir del campo. Capital actual se calcula automáticamente.</p>
  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px;">
- <div><label class="calc-label">Capital inicial (€)</label><input type="number" id="prog-capital-ini" class="calc-input" placeholder="500" step="0.01"><span style="font-size:10px;color:var(--text-muted)">Se reinicia con trades de reinicio</span></div>
+ <div><label class="calc-label">Capital inicial (€)</label><input type="number" id="prog-capital-ini" class="calc-input" placeholder="500" step="0.01" onchange="saveProgConfig()"><span style="font-size:10px;color:var(--text-muted)">Se reinicia con trades de reinicio</span></div>
  <div><label class="calc-label">Capital actual (€)</label><input type="text" id="prog-capital-now-ro" class="calc-input" readonly style="opacity:0.6;cursor:not-allowed;background:rgba(255,255,255,0.03)"><span style="font-size:10px;color:var(--text-muted)">Calculado · solo lectura</span></div>
- <div><label class="calc-label">Capital objetivo (€)</label><input type="number" id="prog-capital-obj" class="calc-input" placeholder="10000" step="0.01"></div>
+ <div><label class="calc-label">Capital objetivo (€)</label><input type="number" id="prog-capital-obj" class="calc-input" placeholder="10000" step="0.01" onchange="saveProgConfig()"></div>
  <div><label class="calc-label">Plazo para el objetivo</label>
   <div style="display:flex;gap:4px">
-   <input type="number" id="prog-goal-time" class="calc-input" placeholder="6" min="1" max="999" style="flex:1">
-   <select id="prog-goal-unit" class="calc-input" style="flex:1;padding:6px 4px">
+   <input type="number" id="prog-goal-time" class="calc-input" placeholder="6" min="1" max="999" style="flex:1" onchange="saveProgConfig()">
+   <select id="prog-goal-unit" class="calc-input" style="flex:1;padding:6px 4px" onchange="saveProgConfig()">
     <option value="">---</option>
     <option value="days">Días</option>
     <option value="weeks">Semanas</option>
@@ -1658,16 +1658,15 @@ h3 { font-size: 14px; }
    </select>
   </div>
  </div>
- <div><label class="calc-label">Días laborables/sem</label><input type="number" id="prog-days-week" class="calc-input" placeholder="5" min="1" max="7"></div>
- <div><label class="calc-label">Días negativos/sem</label><input type="number" id="prog-days-neg" class="calc-input" placeholder="2" min="0" max="7"><span style="font-size:10px;color:var(--text-muted)">Días rojos esperados (realista)</span></div>
- <div><label class="calc-label">% Pérdida máx diaria</label><input type="number" id="prog-daily-sl" class="calc-input" placeholder="6" step="0.5"><span style="font-size:10px;color:var(--text-muted)">SL del capital por día</span></div>
- <div><label class="calc-label">Máx trades/día</label><input type="number" id="prog-max-trades" class="calc-input" placeholder="3" min="1" max="10"></div>
- <div><label class="calc-label">Salario anual (€)</label><input type="number" id="prog-salary" class="calc-input" placeholder="30000" step="100"><span style="font-size:10px;color:var(--text-muted)">Para comparar rendimiento</span></div>
- <div><label class="calc-label">% Impuestos trading</label><input type="number" id="prog-tax" class="calc-input" placeholder="23" step="0.5" min="0" max="60"><span style="font-size:10px;color:var(--text-muted)">IRPF sobre ganancias</span></div>
- <div><label class="calc-label">Objetivo y cifras</label><select id="prog-tax-mode" class="calc-input" style="padding:6px 4px"><option value="gross">Bruto</option><option value="net">Neto</option></select><span style="font-size:10px;color:var(--text-muted)">¿Las cifras descuentan IRPF?</span></div>
+ <div><label class="calc-label">Días laborables/sem</label><input type="number" id="prog-days-week" class="calc-input" placeholder="5" min="1" max="7" onchange="saveProgConfig()"></div>
+ <div><label class="calc-label">Días negativos/sem</label><input type="number" id="prog-days-neg" class="calc-input" placeholder="2" min="0" max="7" onchange="saveProgConfig()"><span style="font-size:10px;color:var(--text-muted)">Días rojos esperados (realista)</span></div>
+ <div><label class="calc-label">% Pérdida máx diaria</label><input type="number" id="prog-daily-sl" class="calc-input" placeholder="6" step="0.5" onchange="saveProgConfig()"><span style="font-size:10px;color:var(--text-muted)">SL del capital por día</span></div>
+ <div><label class="calc-label">Máx trades/día</label><input type="number" id="prog-max-trades" class="calc-input" placeholder="3" min="1" max="10" onchange="saveProgConfig()"></div>
+ <div><label class="calc-label">Salario anual (€)</label><input type="number" id="prog-salary" class="calc-input" placeholder="30000" step="100" onchange="saveProgConfig()"><span style="font-size:10px;color:var(--text-muted)">Para comparar rendimiento</span></div>
+ <div><label class="calc-label">% Impuestos trading</label><input type="number" id="prog-tax" class="calc-input" placeholder="23" step="0.5" min="0" max="60" onchange="saveProgConfig()"><span style="font-size:10px;color:var(--text-muted)">IRPF sobre ganancias</span></div>
+ <div><label class="calc-label">Objetivo y cifras</label><select id="prog-tax-mode" class="calc-input" style="padding:6px 4px" onchange="saveProgConfig()"><option value="gross">Bruto</option><option value="net">Neto</option></select><span style="font-size:10px;color:var(--text-muted)">¿Las cifras descuentan IRPF?</span></div>
  </div>
  <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:10px">
- <button class="btn btn-primary" style="padding:6px 14px;font-size:11px;white-space:nowrap" onclick="saveProgConfig()">💾 Guardar</button>
  <button class="btn" style="padding:6px 14px;font-size:11px;background:rgba(255,82,82,0.15);color:var(--accent-red);border:none;white-space:nowrap" onclick="resetProgConfig()">🗑️ Reset</button>
  </div></div>
 <div class="card">
